@@ -1,12 +1,33 @@
 # Latency tester
 
-Wire pin 2 on the tester Pico to a button pin on the device under test.
+## Native version
 
-Connect RX pin on a USB-UART adapter to pin 0 on the tester Pico. Connect GND and 5V between the USB-UART adapter and the tester Pico. Connect the USB-UART adapter to a computer and set the baud rate to 921600. 
+Wire GPIO2 on the tester Pico to a button pin on the device under test.
+
+Connect RX pin on a USB-UART adapter to GPIO0 on the tester Pico. Connect GND and 5V between the USB-UART adapter and the tester Pico. Connect the USB-UART adapter to a computer and set the baud rate to 921600. 
 
 Connect the device under test to the tester Pico using an OTG cable.
 
-The test starts automatically after the device is plugged in and lasts 30 seconds. The numbers on each line are:
+## PIO version
+
+Wire GPIO2 on the tester Pico to a button pin on the device under test.
+
+Wire a female USB Type A port to the tester Pico as follows:
+
+| Pico | USB port |
+| ---- | -------- |
+| VBUS | VBUS |
+| GND | GND |
+| GPIO0 | D+ |
+| GPIO1 | D- |
+
+Connect the device under test to this port.
+
+The tester Pico will be visible as a virtual serial port on the computer.
+
+## How to use
+
+The test starts automatically after the device is plugged in and lasts around 30 seconds. The numbers on each line are:
 
 * time within USB frame at which button state was toggled
 * time at which the input report resulting from that button state change arrived, relative to start of next USB frame
