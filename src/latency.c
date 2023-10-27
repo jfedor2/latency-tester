@@ -6,28 +6,23 @@
 #include "tusb.h"
 
 #include "hardware/gpio.h"
+#include "pico/multicore.h"
 #include "pico/stdio.h"
 
 #define BUTTON_PIN 2
 
-bool device_connected = false;
-uint64_t last_sof_us = 0;
-bool sof_happened = false;
-uint32_t samples_left = 0;
-bool input_happened = false;
-uint8_t received_report[64];
-uint8_t previous_report[64];
+volatile bool device_connected = false;
+volatile uint64_t last_sof_us = 0;
+volatile bool sof_happened = false;
+volatile uint32_t samples_left = 0;
+volatile bool input_happened = false;
 
-int main() {
+void core1_entry() {
     uint32_t us_within_frame = 0;
     uint32_t waiting_for_input = false;
     uint64_t toggle_button_at_us = 0;
     bool button_state = true;
     bool toggle_scheduled = false;
-
-    board_init();
-    tusb_init();
-    stdio_init_all();
 
     gpio_init(BUTTON_PIN);
     gpio_set_dir(BUTTON_PIN, GPIO_OUT);
@@ -36,8 +31,6 @@ int main() {
     printf("Hello.\n");
 
     while (1) {
-        tuh_task();  // <- all the callbacks are called here
-
         uint64_t now = time_us_64();
 
         if (sof_happened) {
@@ -60,17 +53,27 @@ int main() {
         }
 
         if (waiting_for_input && input_happened) {
+            printf("%llu\n", now - toggle_button_at_us - 1000 + us_within_frame);
             input_happened = false;
-            if (memcmp(previous_report, received_report, 7)) {
-                printf("%llu\n", now - toggle_button_at_us - 1000 + us_within_frame);
-                waiting_for_input = false;
-            }
+            waiting_for_input = false;
         }
 
         if (waiting_for_input && (now > toggle_button_at_us + 500000)) {
             printf("input dropped\n");
             waiting_for_input = false;
         }
+    }
+}
+
+int main() {
+    board_init();
+    tusb_init();
+    stdio_init_all();
+
+    multicore_launch_core1(core1_entry);
+
+    while (1) {
+        tuh_task();
     }
 
     return 0;
@@ -94,8 +97,11 @@ void tuh_sof_cb() {
 }
 
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
-    input_happened = true;
-    memcpy(previous_report, received_report, len);
-    memcpy(received_report, report, len);
+    static uint8_t previous_report[64];
+
+    if (memcmp(previous_report, report, 7)) {
+        input_happened = true;
+    }
+    memcpy(previous_report, report, len);
     tuh_hid_receive_report(dev_addr, instance);
 }

@@ -27,6 +27,7 @@ target_include_directories(latency_native PRIVATE
 )
 target_link_libraries(latency_native
     pico_stdlib
+    pico_multicore
     tinyusb_host
     tinyusb_board
 )
@@ -46,6 +47,7 @@ target_include_directories(latency_pio PRIVATE
 )
 target_link_libraries(latency_pio
     pico_stdlib
+    pico_multicore
     hardware_pio
     tinyusb_host
     tinyusb_board
