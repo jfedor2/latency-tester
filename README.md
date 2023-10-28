@@ -27,7 +27,7 @@ The tester Pico will be visible as a virtual serial port on the computer.
 
 ## How to use
 
-The test starts automatically after the device is plugged in and lasts around 30 seconds. The numbers on each line are:
+The test starts automatically after the device is plugged in and takes around 45 seconds. The numbers on each line are:
 
 * time within USB frame at which button state was toggled
 * time at which the input report resulting from that button state change arrived, relative to start of next USB frame
