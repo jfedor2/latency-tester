@@ -36,7 +36,9 @@ void core1_entry() {
         if (sof_happened) {
             sof_happened = false;
             if (device_connected && (samples_left > 0) && !waiting_for_input && !toggle_scheduled) {
-                samples_left--;
+                if (--samples_left == 0) {
+                    board_led_write(false);
+                }
                 us_within_frame = samples_left % 1000;
                 toggle_button_at_us = last_sof_us + 10000 + 1000*(samples_left % 10) + us_within_frame;
                 printf("%lu ", us_within_frame);
@@ -83,6 +85,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     printf("Device connected.\n");
     device_connected = true;
     samples_left = 3000;
+    board_led_write(true);
     tuh_hid_receive_report(dev_addr, instance);
 }
 
