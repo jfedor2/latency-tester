@@ -18,8 +18,10 @@ check_and_add_pico_pio_usb_support()
 add_compile_options(-Wall)
 
 add_executable(latency_native
-    src/latency.c
-    src/interval_override.c
+    src/latency.cc
+    src/interval_override.cc
+    src/xbox.cc
+    src/app_driver.cc
 )
 target_include_directories(latency_native PRIVATE
     src
@@ -34,8 +36,10 @@ target_link_libraries(latency_native
 pico_add_extra_outputs(latency_native)
 
 add_executable(latency_pio
-    src/latency.c
-    src/interval_override.c
+    src/latency.cc
+    src/interval_override.cc
+    src/xbox.cc
+    src/app_driver.cc
 )
 pico_enable_stdio_usb(latency_pio 1)
 pico_enable_stdio_uart(latency_pio 0)
