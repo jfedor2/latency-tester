@@ -16,12 +16,14 @@ pico_sdk_init()
 check_and_add_pico_pio_usb_support()
 
 add_compile_options(-Wall)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
 
 add_executable(latency_native
     src/latency.cc
     src/interval_override.cc
     src/xbox.cc
     src/app_driver.cc
+    src/descriptor_parser.cc
 )
 target_include_directories(latency_native PRIVATE
     src
@@ -40,6 +42,7 @@ add_executable(latency_pio
     src/interval_override.cc
     src/xbox.cc
     src/app_driver.cc
+    src/descriptor_parser.cc
 )
 pico_enable_stdio_usb(latency_pio 1)
 pico_enable_stdio_uart(latency_pio 0)

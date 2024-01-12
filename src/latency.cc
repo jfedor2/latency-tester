@@ -10,6 +10,7 @@
 #include "pico/stdio.h"
 
 #include "callbacks.h"
+#include "descriptor_parser.h"
 
 #define BUTTON_PIN 2
 
@@ -18,6 +19,9 @@ volatile uint64_t last_sof_us = 0;
 volatile bool sof_happened = false;
 volatile uint32_t samples_left = 0;
 volatile bool input_happened = false;
+
+bool has_report_id;
+std::unordered_map<uint8_t, uint8_t[64]> relevant_bits;
 
 void core1_entry() {
     uint32_t us_within_frame = 0;
@@ -83,8 +87,56 @@ int main() {
     return 0;
 }
 
+inline void put_bit(uint8_t* data, int len, uint16_t bitpos, uint8_t value) {
+    int byte_no = bitpos / 8;
+    int bit_no = bitpos % 8;
+    if (byte_no < len) {
+        data[byte_no] &= ~(1 << bit_no);
+        data[byte_no] |= (value & 1) << bit_no;
+    }
+}
+
+inline void put_bits(uint8_t* data, int len, uint16_t bitpos, uint8_t size, uint32_t value) {
+    for (int i = 0; i < size; i++) {
+        put_bit(data, len, bitpos + i, (value >> i) & 1);
+    }
+}
+
 void descriptor_received_callback(uint16_t vendor_id, uint16_t product_id, const uint8_t* report_descriptor, int len, uint16_t interface) {
+    std::unordered_map<uint8_t, std::unordered_map<uint32_t, usage_def_t>> input_usages;
+    std::unordered_map<uint8_t, std::unordered_map<uint32_t, usage_def_t>> output_usages;
+    std::unordered_map<uint8_t, std::unordered_map<uint32_t, usage_def_t>> feature_usages;
+
     printf("# Device connected (%04x:%04x)\n", vendor_id, product_id);
+
+    relevant_bits.clear();
+    has_report_id = false;
+
+    auto report_sizes_map = parse_descriptor(
+        input_usages,
+        output_usages,
+        feature_usages,
+        has_report_id,
+        report_descriptor,
+        len);
+
+    for (auto const& [report_id, usage_map] : input_usages) {
+        for (auto const& [usage, usage_def] : usage_map) {
+            if (((usage >> 16) == 0x0009) || (usage == 0x00010039)) {
+                put_bits(relevant_bits[report_id], 64, usage_def.bitpos, usage_def.size, 0xFFFFFFFF);
+            }
+        }
+    }
+
+    printf("# relevant_bits:\n");
+    for (auto const& [report_id, relevant] : relevant_bits) {
+        printf("# (%d) ", report_id);
+        for (int i = 0; i < 64; i++) {
+            printf("%02x", relevant[i]);
+        }
+        printf("\n");
+    }
+
     device_connected = true;
     samples_left = 3000;
     board_led_write(true);
@@ -114,11 +166,28 @@ void tuh_sof_cb() {
 }
 
 void report_received_callback(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
-    static uint8_t previous_report[64];
+    static uint8_t previous_report[64];  // XXX per-report_id
 
-    if (memcmp(previous_report + 4, report + 4, 2)) {
-        input_happened = true;
+    if (len == 0) {
+        return;
     }
+
+    uint8_t report_id = 0;
+    if (has_report_id) {
+        report_id = report[0];
+        report++;
+        len--;
+    }
+
+    uint8_t* relevant_mask = relevant_bits[report_id];
+
+    for (uint16_t i = 0; i < len; i++) {
+        if ((report[i] & relevant_mask[i]) != (previous_report[i] & relevant_mask[i])) {
+            input_happened = true;
+            break;
+        }
+    }
+
     memcpy(previous_report, report, len);
 }
 
