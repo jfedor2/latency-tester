@@ -13,12 +13,14 @@
 #include "descriptor_parser.h"
 
 #define BUTTON_PIN 2
+#define TOTAL_SAMPLES 3000
 
 volatile bool device_connected = false;
 volatile uint64_t last_sof_us = 0;
 volatile bool sof_happened = false;
 volatile uint32_t samples_left = 0;
 volatile bool input_happened = false;
+volatile uint64_t total_latency = 0;
 
 bool has_report_id;
 std::unordered_map<uint8_t, uint8_t[64]> relevant_bits;
@@ -61,9 +63,13 @@ void core1_entry() {
         }
 
         if (waiting_for_input && input_happened) {
+            total_latency += now - toggle_button_at_us;
             printf("%llu\n", now - toggle_button_at_us - 1000 + us_within_frame);
             input_happened = false;
             waiting_for_input = false;
+            if (samples_left == 0) {
+                printf("# average latency: %lluus\n", total_latency / TOTAL_SAMPLES);
+            }
         }
 
         if (waiting_for_input && (now > toggle_button_at_us + 500000)) {
@@ -137,8 +143,9 @@ void descriptor_received_callback(uint16_t vendor_id, uint16_t product_id, const
         printf("\n");
     }
 
+    total_latency = 0;
+    samples_left = TOTAL_SAMPLES;
     device_connected = true;
-    samples_left = 3000;
     board_led_write(true);
 }
 
