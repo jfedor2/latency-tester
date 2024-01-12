@@ -40,7 +40,7 @@ void core1_entry() {
                     board_led_write(false);
                 }
                 us_within_frame = samples_left % 1000;
-                toggle_button_at_us = last_sof_us + 10000 + 1000*(samples_left % 10) + us_within_frame;
+                toggle_button_at_us = last_sof_us + 10000 + 1000 * (samples_left % 10) + us_within_frame;
                 printf("%lu ", us_within_frame);
                 toggle_scheduled = true;
             }
