@@ -1,0 +1,54 @@
+; Copyright (c) 2026 Jacek Fedorynski
+; SPDX-License-Identifier: MIT
+
+; Toggles the button pin a given number of cycles after the start of the next
+; SOF. Runs on PIO1 alongside the sniffer.
+;
+; D+/D- read inverted (GPIO_OVERRIDE_INVERT, set by Pico-PIO-USB or latency.cc):
+;
+;   idle (J)   reads D+ 0, D- 1
+;   K          reads D+ 1, D- 0
+;   SE0        reads D+ 1, D- 1
+;
+; The SOF is detected on D- because only K asserts it. D+ would also trigger
+; on a stray SE0 Pico-PIO-USB emits ~2us before every SOF.
+;
+; Idle is detected on D+ and must last tens of microseconds, since NRZI data
+; passes through J too. That is longer than any bit-stuffed run or
+; inter-packet gap, and much shorter than the end-of-frame idle.
+;
+; TX FIFO: the debounce iteration count once at start, then one wait-cycle
+; count per round.
+
+.program toggle_at_sof
+    pull block                  ; debounce budget, once, at the very start
+    mov y, osr
+    mov isr, null                ; ISR holds the pin direction (0 = high-Z)
+
+.wrap_target
+    pull block                  ; this round's wait-cycle count
+idle_reset:
+    mov x, y
+idle_loop:
+    jmp pin busy_again          ; JMP_PIN = D+; still busy -> restart
+    jmp x--, idle_loop
+    jmp confirmed_idle
+busy_again:
+    jmp idle_reset
+
+confirmed_idle:
+    mov x, osr
+    wait 0 pin 1                 ; D-: the SOF's first K
+
+wait_loop:
+    jmp x--, wait_loop
+
+    ; Flip the pin between driven low and high-Z. Goes through OSR because
+    ; RP2040 has no "mov pindirs".
+    mov isr, ~isr
+    mov osr, isr
+    out pindirs, 1
+
+    ; Used by toggle_sync_to_sof().
+    irq nowait 0
+.wrap

@@ -1,0 +1,385 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f7f7f8;
+  --panel: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e2e2e6;
+  --accent: #2563eb;
+  --accent-weak: rgba(37, 99, 235, 0.55);
+  --ok: #16a34a;
+  --ok-weak: rgba(22, 163, 74, 0.55);
+  --bad: #dc2626;
+  --bad-weak: rgba(220, 38, 38, 0.15);
+  --warn: #ca8a04;
+  --frame0: #9333ea;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181c;
+    --panel: #202127;
+    --text: #e9e9ec;
+    --muted: #9a9aa3;
+    --border: #34353c;
+    --accent: #5b8def;
+    --accent-weak: rgba(91, 141, 239, 0.55);
+    --ok: #4ade80;
+    --ok-weak: rgba(74, 222, 128, 0.55);
+    --bad: #f87171;
+    --bad-weak: rgba(248, 113, 113, 0.18);
+    --warn: #facc15;
+    --frame0: #c084fc;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.status-dots {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.status-dot-red {
+  background: var(--bad);
+}
+
+.status-dot-green {
+  background: var(--ok);
+}
+
+.status-dot-grey {
+  background: var(--muted);
+}
+
+.status-dot-blink {
+  animation: status-dot-blink 1s linear infinite;
+}
+
+@keyframes status-dot-blink {
+  0%, 49% {
+    background: var(--warn);
+  }
+  50%, 100% {
+    background: var(--muted);
+  }
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#statusMessage {
+  flex: 1;
+  min-width: 0;
+  color: var(--bad);
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+#connectBtn, #startBtn {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  /* Fixed so the button doesn't resize when its label changes. */
+  width: 120px;
+}
+
+#connectBtn {
+  margin-left: auto;
+}
+
+#connectBtn:disabled, #startBtn:disabled {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+#stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+#statDevice, #statHero, #statInfo {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-height: 88px;
+}
+
+#statDevice {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+#statDevice > div {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#statDevice > #statVidPid {
+  color: var(--muted);
+}
+
+#statHero {
+  display: flex;
+  flex-direction: column;
+}
+
+#statHero .stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+#statHero .stat-value-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#statHero span {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#statFrames {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#statInfo {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+#progressBar {
+  height: 3px;
+  /* Cancel out the flex gaps around this element so it adds no space. */
+  margin: -8.5px 0;
+  border-radius: 2px;
+  background: transparent;
+  overflow: hidden;
+}
+
+#progressBar.active {
+  background: var(--border);
+}
+
+#progressFill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  visibility: hidden;
+}
+
+#progressBar.active #progressFill {
+  visibility: visible;
+}
+
+#chartSection {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+#chart {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  height: 420px;
+}
+
+#bottom {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 10px;
+}
+
+#runsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+#runsSection, #logSection {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pane-header {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+#runList {
+  height: 200px;
+  overflow-y: auto;
+}
+
+#runList.disabled {
+  opacity: 0.45;
+}
+
+.run-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  text-align: left;
+  font-size: 0.8rem;
+}
+
+.run-item:disabled {
+  opacity: 1;
+}
+
+.run-item.selected {
+  background: var(--border);
+}
+
+.run-item .status-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.run-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.run-time {
+  grid-column: 2;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+#runButtons {
+  display: flex;
+  gap: 8px;
+}
+
+#runButtons button {
+  flex: 1;
+}
+
+/* Sized by the runs column next to it, rather than by its contents. */
+#logSection {
+  contain: size;
+  display: flex;
+  flex-direction: column;
+}
+
+#log {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 14px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  #bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #logSection {
+    height: 240px;
+  }
+}

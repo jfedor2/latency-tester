@@ -1,0 +1,12 @@
+; Copyright (c) 2026 Jacek Fedorynski
+; SPDX-License-Identifier: MIT
+
+; Samples D+, D- and the button pin every cycle. PIO1 can read the pins even
+; though Pico-PIO-USB drives them from PIO0.
+;
+; Autopush at 30 bits (10 samples), so samples never straddle a word boundary.
+
+.program event_sniffer
+.wrap_target
+    in pins, 3
+.wrap
