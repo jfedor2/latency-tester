@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Jacek Fedorynski
+// SPDX-License-Identifier: MIT
+
 #ifndef _DESCRIPTOR_PARSER_H_
 #define _DESCRIPTOR_PARSER_H_
 

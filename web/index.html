@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Latency Tester</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Latency Tester</h1>
+  <div id="statusDots" class="status-dots">
+    <span id="dotSerial" class="status-dot status-dot-red" title="Serial: not connected"></span>
+    <span id="dotDut" class="status-dot status-dot-grey" title="DUT: unknown (not connected to tester)"></span>
+    <span id="dotTest" class="status-dot status-dot-grey" title="Test: not running"></span>
+  </div>
+</header>
+
+<section id="controls">
+  <button id="startBtn" disabled>Start test</button>
+  <div id="statusMessage"></div>
+  <button id="connectBtn">Connect</button>
+</section>
+
+<section id="stats">
+  <div id="statDevice">
+    <div id="statManufacturer">&ndash;</div>
+    <div id="statProduct">&ndash;</div>
+    <div id="statVidPid">&ndash;</div>
+  </div>
+  <div id="statHero">
+    <div class="stat-label">Average latency</div>
+    <div class="stat-value-wrap"><span id="statAvgLatency">&ndash;</span></div>
+    <div id="statFrames"></div>
+  </div>
+  <div id="statInfo">
+    <div>samples: <span id="statValid">0</span></div>
+    <div>sof_gap: <span id="statSofGap">&ndash;</span></div>
+    <div>sof_to_in: <span id="statSofToIn">&ndash;</span></div>
+    <div>response_duration: <span id="statRespDur">&ndash;</span></div>
+    <div>build: <span id="statBuildId">&ndash;</span></div>
+  </div>
+</section>
+
+<div id="progressBar"><div id="progressFill"></div></div>
+
+<section id="chartSection">
+  <canvas id="chart"></canvas>
+</section>
+
+<div id="bottom">
+  <div id="runsColumn">
+    <section id="runsSection">
+      <div class="pane-header">Test runs</div>
+      <div id="runList"></div>
+    </section>
+    <div id="runButtons">
+      <button id="exportBtn" disabled>Export data</button>
+      <button id="importBtn">Import data</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </div>
+  <section id="logSection">
+    <div class="pane-header">Log</div>
+    <pre id="log"></pre>
+  </section>
+</div>
+
+<footer>For more information, see <a href="https://github.com/jfedor2/latency-tester">github.com/jfedor2/latency-tester</a>.</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

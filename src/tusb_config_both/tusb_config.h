@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Jacek Fedorynski
+// SPDX-License-Identifier: MIT
+
 #ifndef _TUSB_CONFIG_H_
 #define _TUSB_CONFIG_H_
 
@@ -26,5 +29,7 @@
 #define CFG_TUH_HID_EPOUT_BUFSIZE 64
 
 #define CFG_TUH_RPI_PIO_USB 1
+
+#define CFG_TUH_HID_SET_PROTOCOL_ON_ENUM 0
 
 #endif

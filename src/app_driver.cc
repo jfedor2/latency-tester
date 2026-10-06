@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Jacek Fedorynski
+// SPDX-License-Identifier: MIT
+
 #include "xbox.h"
 
 usbh_class_driver_t const* usbh_app_driver_get_cb(uint8_t* driver_count) {
@@ -7,6 +10,7 @@ usbh_class_driver_t const* usbh_app_driver_get_cb(uint8_t* driver_count) {
             .name = "XBOXH",
 #endif
             .init = xboxh_init,
+            .deinit = xboxh_deinit,
             .open = xboxh_open,
             .set_config = xboxh_set_config,
             .xfer_cb = xboxh_xfer_cb,

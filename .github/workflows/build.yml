@@ -1,0 +1,41 @@
+name: build
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'boards/**'
+      - 'CMakeLists.txt'
+  workflow_call:
+  workflow_dispatch:
+defaults:
+  run:
+    shell: bash --noprofile --norc -x -e -o pipefail {0}
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - name: Install compiler, libraries and tools
+        run: |
+          sudo apt update
+          sudo apt install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib srecord
+      - name: Build
+        run: |
+          mkdir artifacts
+          while read -r board variant; do
+            mkdir build-$board-$variant
+            (cd build-$board-$variant && PICO_BOARD=$board cmake .. && make latency_$variant)
+            cp build-$board-$variant/latency_$variant.uf2 artifacts/latency-$board-$variant.uf2
+          done <<'EOF'
+          pico pio
+          pico native
+          pico2 pio
+          pico2 native
+          feather_host pio
+          rp2040abb pio
+          EOF
+      - uses: actions/upload-artifact@v7
+        with:
+          path: artifacts/*

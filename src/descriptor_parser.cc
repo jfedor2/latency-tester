@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Jacek Fedorynski
+// SPDX-License-Identifier: MIT
+
 #include <cstring>
 #include <deque>
 
@@ -88,7 +91,7 @@ std::unordered_map<ReportType, std::unordered_map<uint8_t, uint16_t>> parse_desc
 
     while (idx < len) {
         if (report_descriptor[idx] == 0 && idx == len - 1) {
-            continue;
+            break;  // trailing padding byte
         }
 
         uint8_t item = report_descriptor[idx] & 0xFC;
@@ -98,6 +101,9 @@ std::unordered_map<ReportType, std::unordered_map<uint8_t, uint16_t>> parse_desc
         }
         uint32_t value = 0;
         idx++;
+        if (idx + item_size > len) {
+            break;  // truncated item
+        }
         for (int i = 0; i < item_size; i++) {
             value |= report_descriptor[idx++] << (i * 8);
         }
@@ -167,12 +173,11 @@ std::unordered_map<ReportType, std::unordered_map<uint8_t, uint16_t>> parse_desc
                             report_count,
                             effective_usage_maximum);
                     } else if (!usages.empty()) {
-                        uint32_t usage = 0;
-                        for (int index = logical_minimum; index <= logical_maximum; index++) {
-                            if (!usages.empty()) {
-                                usage = usages.front();
-                                usages.pop_front();
-                            }
+                        // Once the usages run out, any further indices would just
+                        // repeat the last one, which mark_usage() ignores.
+                        for (int index = logical_minimum; index <= logical_maximum && !usages.empty(); index++) {
+                            uint32_t const usage = usages.front();
+                            usages.pop_front();
 
                             mark_usage(
                                 usage_map[report_type],
@@ -232,8 +237,11 @@ std::unordered_map<ReportType, std::unordered_map<uint8_t, uint16_t>> parse_desc
             }
             case HID_LOGICAL_MINIMUM:
                 logical_minimum = value;
-                if (logical_minimum & (1 << (item_size * 8 - 1))) {
-                    logical_minimum |= 0xFFFFFFFF << item_size * 8;
+                // Sign-extend. Nothing to do for size 0 (value is 0) or size 4
+                // (already fills all 32 bits), and shifting by 32 or -1 would
+                // be undefined anyway.
+                if (item_size > 0 && item_size < 4 && (logical_minimum & (1 << (item_size * 8 - 1)))) {
+                    logical_minimum |= 0xFFFFFFFF << (item_size * 8);
                 }
                 break;
             case HID_LOGICAL_MAXIMUM:
